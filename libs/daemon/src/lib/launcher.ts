@@ -6,9 +6,8 @@ import { logFilePath, pidFilePath, socketPath } from './paths.js';
 import { isDaemonRunning } from './pidfile.js';
 
 export type EnsureDaemonRunningOptions = {
-  /** Script to (re-)invoke with `node` in order to start the daemon. */
+  /** Script to run with `node` to start the daemon. */
   entry: string;
-  args?: string[];
   timeoutMs?: number;
 };
 
@@ -16,14 +15,14 @@ export async function ensureDaemonRunning(
   options: EnsureDaemonRunningOptions,
 ): Promise<void> {
   if (isDaemonRunning(pidFilePath)) return;
-  spawnDaemon(options.entry, options.args ?? []);
+  spawnDaemon(options.entry);
   await waitForSocket(options.timeoutMs ?? 5000);
 }
 
-function spawnDaemon(entry: string, args: string[]): void {
+function spawnDaemon(entry: string): void {
   fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
   const log = fs.openSync(logFilePath, 'a');
-  const child = spawn(process.execPath, [entry, ...args, '--daemon'], {
+  const child = spawn(process.execPath, [entry], {
     detached: true,
     stdio: ['ignore', log, log],
   });
