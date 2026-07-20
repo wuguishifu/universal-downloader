@@ -1,0 +1,9 @@
+{
+  "name": "transport",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/transport/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "// targets": "to see all targets run: nx show project transport --web",
+  "targets": {}
+}
