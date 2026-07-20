@@ -6,7 +6,6 @@ import { logFilePath, pidFilePath, socketPath } from './paths.js';
 import { isDaemonRunning } from './pidfile.js';
 
 export type EnsureDaemonRunningOptions = {
-  /** Script to run with `node` to start the daemon. */
   entry: string;
   timeoutMs?: number;
 };
@@ -29,9 +28,7 @@ function spawnDaemon(entry: string): void {
   child.unref();
 }
 
-// Socket-connect probing doubles as the readiness check: the daemon only
-// accepts connections once `RpcServer`/`SocketTransportServer` have finished
-// binding, so a successful connect means it's ready to take real RPC calls.
+// the daemon only accepts connections once rpc + transport servers have finished binding
 function waitForSocket(timeoutMs: number): Promise<void> {
   const deadline = Date.now() + timeoutMs;
 
