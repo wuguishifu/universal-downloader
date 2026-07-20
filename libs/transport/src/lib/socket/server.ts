@@ -8,7 +8,7 @@ import { socketRequestSchema } from './types.js';
 
 type RequestHandler = (type: RpcMessageKey, payload: string) => Promise<string>;
 
-export class SocketServerTransport implements ServerTransport {
+export class SocketTransportServer implements ServerTransport {
   private readonly server = net.createServer((socket) =>
     this.handleConnection(socket),
   );

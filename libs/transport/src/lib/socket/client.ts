@@ -4,7 +4,7 @@ import readline from 'node:readline';
 import { socketUrl } from './constants.js';
 import { socketResponseSchema } from './types.js';
 
-export class SocketTransport implements Transport {
+export class SocketTransportClient implements Transport {
   private socket = net.createConnection(socketUrl);
 
   private readonly pending = new Map<

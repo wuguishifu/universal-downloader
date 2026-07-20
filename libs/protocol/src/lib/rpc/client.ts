@@ -13,7 +13,7 @@ export class RpcClient {
 
   async call<T extends RpcMessageKey>(
     type: T,
-    payload: RpcRequest<T>,
+    ...[payload]: RpcRequest<T> extends void ? [] : [payload: RpcRequest<T>]
   ): Promise<RpcResponse<T>> {
     try {
       const result = await this.transport.send(type, encodePayload(payload));
