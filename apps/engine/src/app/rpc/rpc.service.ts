@@ -18,6 +18,8 @@ import { DownloadsService } from '../downloads/downloads.service';
 // itself down rather than sitting around holding resources.
 const IDLE_TIMEOUT_MS = 30_000;
 
+const noOpIdleTimer = { touch: () => undefined, stop: () => undefined };
+
 @Injectable()
 export class RpcService
   implements OnApplicationBootstrap, OnApplicationShutdown
@@ -26,12 +28,15 @@ export class RpcService
   private readonly server: RpcServer;
 
   constructor(downloads: DownloadsService) {
-    this.idleTimer = createIdleTimer(IDLE_TIMEOUT_MS, () => {
-      // nest's shutdown hooks are wired to process signals (see
-      // `app.enableShutdownHooks()` in main.ts) rather than to an in-process
-      // `close()` call, so idling out reuses that same signal-driven path.
-      process.kill(process.pid, 'SIGTERM');
-    });
+    this.idleTimer =
+      process.env.DISABLE_IDLE_TIME === 'true'
+        ? noOpIdleTimer
+        : createIdleTimer(IDLE_TIMEOUT_MS, () => {
+            // nest's shutdown hooks are wired to process signals (see
+            // `app.enableShutdownHooks()` in main.ts) rather than to an in-process
+            // `close()` call, so idling out reuses that same signal-driven path.
+            process.kill(process.pid, 'SIGTERM');
+          });
 
     this.server = new RpcServer(
       {
