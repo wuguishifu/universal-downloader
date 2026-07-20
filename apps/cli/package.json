@@ -1,0 +1,10 @@
+{
+  "name": "@udl/cli",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@udl/daemon": "workspace:*",
+    "@udl/protocol": "workspace:*",
+    "@udl/transport": "workspace:*"
+  }
+}
