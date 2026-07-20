@@ -1,0 +1,9 @@
+{
+  "name": "daemon",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/daemon/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "// targets": "to see all targets run: nx show project daemon --web",
+  "targets": {}
+}

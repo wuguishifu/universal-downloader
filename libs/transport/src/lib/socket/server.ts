@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import readline from 'node:readline';
-import { socketUrl } from './constants.js';
 import { socketRequestSchema } from './types.js';
 
 type RequestHandler = (type: RpcMessageKey, payload: string) => Promise<string>;
@@ -14,16 +13,18 @@ export class SocketTransportServer implements ServerTransport {
   );
   private handler: RequestHandler | undefined;
 
+  constructor(private readonly socketPath: string) {}
+
   onRequest(handler: RequestHandler) {
     this.handler = handler;
   }
 
   listen(): Promise<void> {
-    fs.mkdirSync(path.dirname(socketUrl), { recursive: true });
-    fs.rmSync(socketUrl, { force: true });
+    fs.mkdirSync(path.dirname(this.socketPath), { recursive: true });
+    fs.rmSync(this.socketPath, { force: true });
 
     return new Promise((resolve) => {
-      this.server.listen(socketUrl, resolve);
+      this.server.listen(this.socketPath, resolve);
     });
   }
 
@@ -49,6 +50,7 @@ export class SocketTransportServer implements ServerTransport {
       // not here — the transport stays agnostic to what methods exist and
       // leaves unknown-method validation to the handler it's given.
       const payload = await this.handler(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         request.type as RpcMessageKey,
         request.payload,
       );
@@ -56,7 +58,6 @@ export class SocketTransportServer implements ServerTransport {
       socket.write(JSON.stringify({ type: 'response', id, payload }) + '\n');
     } catch (error) {
       if (!id) {
-        console.error(error);
         return;
       }
       socket.write(

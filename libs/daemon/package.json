@@ -1,5 +1,5 @@
 {
-  "name": "@udl/transport",
+  "name": "@udl/daemon",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -16,8 +16,6 @@
     }
   },
   "dependencies": {
-    "tslib": "^2.3.0",
-    "@udl/protocol": "workspace:*",
-    "zod": "^4.4.3"
+    "tslib": "^2.3.0"
   }
 }
