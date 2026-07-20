@@ -1,11 +1,10 @@
 import { RpcMessageKey, Transport } from '@udl/protocol';
 import net from 'node:net';
 import readline from 'node:readline';
-import { socketUrl } from './constants.js';
 import { socketResponseSchema } from './types.js';
 
 export class SocketTransportClient implements Transport {
-  private socket = net.createConnection(socketUrl);
+  private readonly socket: net.Socket;
 
   private readonly pending = new Map<
     string,
@@ -15,7 +14,9 @@ export class SocketTransportClient implements Transport {
     }
   >();
 
-  constructor() {
+  constructor(socketPath: string) {
+    this.socket = net.createConnection(socketPath);
+
     const rl = readline.createInterface({
       input: this.socket,
     });
@@ -32,20 +33,16 @@ export class SocketTransportClient implements Transport {
   }
 
   handleMessage(line: string) {
-    try {
-      const message = socketResponseSchema.parse(JSON.parse(line));
+    const message = socketResponseSchema.parse(JSON.parse(line));
 
-      const pending = this.pending.get(message.id);
-      if (!pending) return;
-      this.pending.delete(message.id);
+    const pending = this.pending.get(message.id);
+    if (!pending) return;
+    this.pending.delete(message.id);
 
-      if (message.type === 'response') {
-        return pending.resolve(message.payload);
-      } else {
-        return pending.reject(new Error(message.error));
-      }
-    } catch (error) {
-      console.error(error);
+    if (message.type === 'response') {
+      return pending.resolve(message.payload);
+    } else {
+      return pending.reject(new Error(message.error));
     }
   }
 }
