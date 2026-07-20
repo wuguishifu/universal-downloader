@@ -11,6 +11,9 @@
     },
     {
       "path": "./libs/daemon"
+    },
+    {
+      "path": "./apps/engine"
     }
   ],
   "compilerOptions": {}
