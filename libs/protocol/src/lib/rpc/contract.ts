@@ -12,10 +12,10 @@ export const messages = {
     requestPayload: z.object({
       url: z.string(),
     }),
-    responsePayload: z.never(),
+    responsePayload: z.void(),
   },
   listDownloads: {
-    requestPayload: z.never(),
+    requestPayload: z.void(),
     responsePayload: downloadSchema.array(),
   },
 } as const satisfies Record<string, Handler>;
@@ -30,6 +30,18 @@ export type RpcResponse<T extends RpcMessageKey> = z.infer<
   (typeof messages)[T]['responsePayload']
 >;
 
+// `JSON.stringify(undefined)` returns the *value* `undefined`, not a string,
+// so payload-less messages (anything typed `void` above) can't round-trip
+// through a `string`-typed wire format the normal way. Encode "no payload"
+// as `''` on both sides instead.
+export function encodePayload(value: unknown): string {
+  return value === undefined ? '' : JSON.stringify(value);
+}
+
+export function decodePayload(raw: string): unknown {
+  return raw === '' ? undefined : JSON.parse(raw);
+}
+
 export interface Transport {
-  send: (data: string) => Promise<string>;
+  send: (type: RpcMessageKey, payload: string) => Promise<string>;
 }

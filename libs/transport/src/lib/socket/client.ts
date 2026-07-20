@@ -1,4 +1,4 @@
-import { Transport } from '@udl/protocol';
+import { RpcMessageKey, Transport } from '@udl/protocol';
 import net from 'node:net';
 import readline from 'node:readline';
 import { socketUrl } from './constants.js';
@@ -23,11 +23,11 @@ export class SocketTransport implements Transport {
     rl.on('line', (message) => this.handleMessage(message));
   }
 
-  send(data: string): Promise<string> {
+  send(type: RpcMessageKey, payload: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
       this.pending.set(id, { resolve, reject });
-      this.socket.write(data + '\n');
+      this.socket.write(JSON.stringify({ id, type, payload }) + '\n');
     });
   }
 

@@ -1,4 +1,6 @@
 import {
+  decodePayload,
+  encodePayload,
   messages,
   RpcMessageKey,
   RpcRequest,
@@ -14,7 +16,7 @@ export class RpcClient {
     payload: RpcRequest<T>,
   ): Promise<RpcResponse<T>> {
     try {
-      const result = await this.transport.send(JSON.stringify(payload));
+      const result = await this.transport.send(type, encodePayload(payload));
       // `messages[type].responsePayload` is resolved against T's constraint
       // (the full RpcMessageKey union) rather than the literal T, so TS
       // collapses the call's return type to one arbitrary member instead of
@@ -22,7 +24,7 @@ export class RpcClient {
       // schema above, so the runtime-validated result is guaranteed to match
       // RpcResponse<T> — assert it here at this one boundary.
       const parsed = messages[type].responsePayload.parse(
-        JSON.parse(result),
+        decodePayload(result),
       ) as RpcResponse<T>;
       return parsed;
     } catch (error) {
