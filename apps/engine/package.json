@@ -1,9 +1,0 @@
-{
-  "name": "@udl/engine",
-  "version": "0.0.1",
-  "private": true,
-  "dependencies": {
-    "@udl/protocol": "workspace:*",
-    "@udl/transport": "workspace:*"
-  }
-}
