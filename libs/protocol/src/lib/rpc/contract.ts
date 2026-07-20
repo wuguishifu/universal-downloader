@@ -45,3 +45,22 @@ export function decodePayload(raw: string): unknown {
 export interface Transport {
   send: (type: RpcMessageKey, payload: string) => Promise<string>;
 }
+
+export type RpcHandler<T extends RpcMessageKey> = (
+  payload: RpcRequest<T>,
+) => Promise<RpcResponse<T>> | RpcResponse<T>;
+
+export type RpcHandlers = {
+  [T in RpcMessageKey]: RpcHandler<T>;
+};
+
+// The server-side counterpart of `Transport`: instead of initiating calls,
+// it accepts a dispatcher and feeds it incoming `(type, payload)` pairs,
+// handing back whatever the dispatcher resolves with as the wire response.
+export interface ServerTransport {
+  onRequest(
+    handler: (type: RpcMessageKey, payload: string) => Promise<string>,
+  ): void;
+  listen(): Promise<void> | void;
+  close(): Promise<void> | void;
+}

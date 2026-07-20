@@ -1,5 +1,12 @@
 import z from 'zod';
 
+export const socketRequestSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  payload: z.string(),
+});
+export type SocketRequest = z.infer<typeof socketRequestSchema>;
+
 export const socketResponseSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('response'),
