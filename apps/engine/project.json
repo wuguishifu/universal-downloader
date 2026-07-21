@@ -22,6 +22,14 @@
         }
       }
     },
+    "build-binary": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "cache": false,
+      "options": {
+        "command": "mkdir -p $(dirname {args.outfile}) && bun build apps/engine/src/main.ts --compile --target={args.bunTarget} --outfile={args.outfile} --external=@nestjs/microservices --external=@nestjs/microservices/microservices-module --external=@nestjs/websockets/socket-module --external=class-transformer --external=class-validator"
+      }
+    },
     "prune-lockfile": {
       "dependsOn": ["build"],
       "cache": true,

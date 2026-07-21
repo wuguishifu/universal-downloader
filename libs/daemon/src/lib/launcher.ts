@@ -21,10 +21,18 @@ export async function ensureDaemonRunning(
 function spawnDaemon(entry: string): void {
   fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
   const log = fs.openSync(logFilePath, 'a');
-  const child = spawn(process.execPath, [entry], {
-    detached: true,
-    stdio: ['ignore', log, log],
-  });
+  // compiled engine binaries are directly executable; a .js entry (dev
+  // workflow) still needs to be run through the current runtime, since
+  // process.execPath is the engine binary itself once the cli is compiled
+  const isScript = entry.endsWith('.js');
+  const child = spawn(
+    isScript ? process.execPath : entry,
+    isScript ? [entry] : [],
+    {
+      detached: true,
+      stdio: ['ignore', log, log],
+    },
+  );
   child.unref();
 }
 
