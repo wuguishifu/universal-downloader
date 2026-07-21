@@ -1,0 +1,132 @@
+name: Build Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-bump-type:
+        description: Version bump type
+        required: false
+        type: choice
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
+
+concurrency:
+  group: build-release
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: bump version
+        id: version
+        run: |
+          ./.github/scripts/versioning/version-bump.sh \
+            ${{ inputs.version-bump-type }}
+
+  build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            arch: x64
+            bun-target: bun-linux-x64
+            exe-ext: ''
+            archive-ext: tar.gz
+          - platform: linux
+            arch: arm64
+            bun-target: bun-linux-arm64
+            exe-ext: ''
+            archive-ext: tar.gz
+          - platform: macos
+            arch: x64
+            bun-target: bun-darwin-x64
+            exe-ext: ''
+            archive-ext: tar.gz
+          - platform: macos
+            arch: arm64
+            bun-target: bun-darwin-arm64
+            exe-ext: ''
+            archive-ext: tar.gz
+          - platform: windows
+            arch: x64
+            bun-target: bun-windows-x64
+            exe-ext: '.exe'
+            archive-ext: zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: install deps
+        run: pnpm i
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+      - name: update package version
+        run: |
+          ./.github/scripts/versioning/set-package-version.sh \
+            ${{ needs.version.outputs.version }}
+
+      - name: build cli binary
+        run: |
+          pnpm exec nx run cli:build-binary \
+            --bunTarget=${{ matrix.bun-target }} \
+            --outfile=dist-bin/udl${{ matrix.exe-ext }}
+
+      - name: build engine binary
+        run: |
+          pnpm exec nx run engine:build-binary \
+            --bunTarget=${{ matrix.bun-target }} \
+            --outfile=dist-bin/udl-engine${{ matrix.exe-ext }}
+
+      - name: package archive
+        id: package
+        run: |
+          NAME=universal-downloader-${{ matrix.platform }}-${{ matrix.arch }}
+          if [ "${{ matrix.archive-ext }}" = "zip" ]; then
+            (cd dist-bin && zip -j "../$NAME.zip" *)
+          else
+            tar -czf "$NAME.tar.gz" -C dist-bin .
+          fi
+          echo "name=$NAME.${{ matrix.archive-ext }}" >> "$GITHUB_OUTPUT"
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-downloader-${{ matrix.platform }}-${{ matrix.arch }}
+          path: ${{ steps.package.outputs.name }}
+
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: publish binaries to github release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: universal-downloader v${{ needs.version.outputs.version }}
+          files: artifacts/*
+          draft: false
+          prerelease: false
