@@ -32,6 +32,12 @@ export class RpcService
       process.env.DISABLE_IDLE_TIME === 'true'
         ? noOpIdleTimer
         : createIdleTimer(IDLE_TIMEOUT_MS, () => {
+            // a download in flight produces no RPC traffic, so without this
+            // check the timer would fire mid-download every time.
+            if (downloads.hasActiveJobs()) {
+              this.idleTimer.touch();
+              return;
+            }
             // nest's shutdown hooks are wired to process signals (see
             // `app.enableShutdownHooks()` in main.ts) rather than to an in-process
             // `close()` call, so idling out reuses that same signal-driven path.

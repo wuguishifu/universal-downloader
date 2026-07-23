@@ -5,7 +5,12 @@ type Handler = {
   responsePayload?: z.ZodType;
 };
 
-const downloadSchema = z.object({ id: z.string() });
+const downloadSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  status: z.enum(['queued', 'in-progress', 'completed', 'failed']),
+  error: z.string().optional(),
+});
 
 export const messages = {
   addDownload: {

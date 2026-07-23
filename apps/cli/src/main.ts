@@ -44,7 +44,8 @@ async function main(): Promise<void> {
         break;
       }
       for (const download of downloads) {
-        console.log(download.id);
+        const suffix = download.error ? ` (${download.error})` : '';
+        console.log(`[${download.status}] ${download.url}${suffix}`);
       }
       break;
     }
