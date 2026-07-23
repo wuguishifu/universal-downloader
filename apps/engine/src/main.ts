@@ -4,7 +4,7 @@ import {
   DaemonAlreadyRunningError,
   pidFilePath,
 } from '@udl/daemon';
-import { AppModule } from './app/app.module';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   try {
