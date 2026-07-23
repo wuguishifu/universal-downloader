@@ -12,7 +12,7 @@ import {
 } from '@udl/daemon';
 import { RpcServer } from '@udl/protocol';
 import { SocketTransportServer } from '@udl/transport';
-import { DownloadsService } from '../downloads/downloads.service';
+import { QueueService } from '../queue/queue.service';
 
 // once the daemon goes this long with no incoming RPC calls, it shuts
 // itself down rather than sitting around holding resources.
@@ -27,7 +27,7 @@ export class RpcService
   private readonly idleTimer: IdleTimer;
   private readonly server: RpcServer;
 
-  constructor(downloads: DownloadsService) {
+  constructor(downloads: QueueService) {
     this.idleTimer =
       process.env.DISABLE_IDLE_TIME === 'true'
         ? noOpIdleTimer

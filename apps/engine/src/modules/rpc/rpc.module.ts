@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DownloadsModule } from '../downloads/downloads.module';
+import { QueueModule } from '../queue/queue.module';
 import { RpcService } from './rpc.service';
 
 @Module({
-  imports: [DownloadsModule],
+  imports: [QueueModule],
   providers: [RpcService],
 })
 export class RpcModule {}
